@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>암호화폐 가격 비교 - 업비트 vs 빗썸</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header__top">
+                <h1 class="header__title">업빗썸</h1>
+                <a href="https://x.com/httpskshcokr" target="_blank" rel="noopener noreferrer" class="twitter-link" title="트위터">
+                    <span class="twitter-icon">𝕏</span>
+                </a>
+            </div>
+            <p class="header__subtitle">업비트 vs 빗썸 실시간 가격 차이</p>
+            <div class="header__update">
+                <span class="update-time">마지막 업데이트: <span id="lastUpdate">-</span></span>
+                <span class="coin-count">총 <span id="coinCount">-</span>개 코인</span>
+                <button class="btn btn--sm btn--outline" id="refreshBtn">가격 새로고침</button>
+                <button class="btn btn--sm btn--theme" id="themeToggle" title="다크모드 전환">
+                    <span class="theme-icon" id="themeIcon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="api-keys-section">
+                <div class="card">
+                    <div class="card__header" style="cursor: pointer;" onclick="toggleApiKeys()">
+                        <h3 class="card__title">API 키 설정 (선택사항) <span id="apiKeysToggle">▼</span></h3>
+                        <p class="card__description">API 키를 설정하면 더 안정적이고 빠른 데이터를 받을 수 있습니다.</p>
+                    </div>
+                    <div class="card__body" id="apiKeysContent" style="display: none;">
+                        <div class="api-keys-form">
+                            <div class="form-group">
+                                <label class="form-label" for="upbitApiKey">업비트 API 키:</label>
+                                <input type="password" id="upbitApiKey" class="form-control" placeholder="업비트 API 키를 입력하세요">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bithumbApiKey">빗썸 API 키:</label>
+                                <input type="password" id="bithumbApiKey" class="form-control" placeholder="빗썸 API 키를 입력하세요">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="bithumbSecretKey">빗썸 Secret 키:</label>
+                                <input type="password" id="bithumbSecretKey" class="form-control" placeholder="빗썸 Secret 키를 입력하세요">
+                            </div>
+                            <div class="api-keys-actions">
+                                <button class="btn btn--primary" id="saveApiKeysBtn">API 키 저장</button>
+                                <button class="btn btn--outline" id="clearApiKeysBtn">키 삭제</button>
+                                <span class="api-status" id="apiStatus">API 키 없음</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="sorting-controls">
+                    <label class="form-label" for="sortSelect">정렬 기준:</label>
+                    <select id="sortSelect" class="form-control form-control--inline">
+                        <option value="name">코인명</option>
+                        <option value="percentage">차이율</option>
+                        <option value="kimchi">김치 프리미엄</option>
+                    </select>
+                </div>
+                <div class="legend">
+                    <span class="legend-item">
+                        <span class="legend-color upbit-color"></span>
+                        업비트
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color bithumb-color"></span>
+                        빗썸
+                    </span>
+                </div>
+            </div>
+
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+                <p>가격 정보를 불러오는 중...</p>
+            </div>
+
+            <div class="error-message hidden" id="errorMessage">
+                <div class="alert alert--error">
+                    <strong>오류 발생:</strong>
+                    <span id="errorText">가격 정보를 불러올 수 없습니다.</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="price-table" id="priceTable">
+                    <thead>
+                        <tr>
+                            <th class="coin-info">코인</th>
+                            <th class="price-col upbit-col">업비트</th>
+                            <th class="price-col bithumb-col">빗썸</th>
+                            <th class="percentage-col">차이율</th>
+                            <th class="kimchi-col">김프</th>
+                            <th class="advantage-col">유리한 거래소</th>
+                        </tr>
+                    </thead>
+                    <tbody id="priceTableBody">
+                        <!-- 데이터가 여기에 동적으로 추가됩니다 -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
