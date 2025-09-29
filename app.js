@@ -438,7 +438,7 @@ class CryptoPriceComparator {
             // 중복 제거
             const uniqueSymbols = Array.from(new Set(binanceSymbols));
             const symbolsParam = encodeURIComponent(JSON.stringify(uniqueSymbols));
-            const url = `https://api.binance.com/api/v3/ticker/price?symbols=${symbolsParam}`;
+            const url = `/api/binance?symbols=${symbolsParam}`;
             const response = await fetch(url);
             if (!response.ok) throw new Error('바이낸스 API 응답 오류');
             const data = await response.json();
@@ -458,7 +458,7 @@ class CryptoPriceComparator {
     // USD->KRW 환율 가져오기
     async fetchUsdKrwRate() {
         try {
-            const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=KRW');
+            const response = await fetch('/api/rate');
             if (!response.ok) throw new Error('환율 API 응답 오류');
             const data = await response.json();
             const rate = data && data.rates && data.rates.KRW ? parseFloat(data.rates.KRW) : null;
