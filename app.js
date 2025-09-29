@@ -19,6 +19,25 @@ class CryptoPriceComparator {
         // 다크모드 설정
         this.isDarkMode = false;
         
+        this._sanityLogged = false;
+        this.logSanity = (upbitData, bithumbData) => {
+            if (this._sanityLogged) return;
+            this._sanityLogged = true;
+            const pick = ['BTC','ETH','XRP'];
+            console.group('[Sanity] Raw API snapshot');
+            for (const sym of pick) {
+                const upbitCoin = this.coins.find(c => c.symbol === sym);
+                const u = upbitData.find(d => d.market === (upbitCoin && upbitCoin.upbit));
+                const b = bithumbData.find(d => d.symbol === sym);
+                console.log(sym, {
+                    upbitMarket: upbitCoin && upbitCoin.upbit,
+                    upbitTradePrice: u && u.trade_price,
+                    bithumbClosing: b && b.price
+                });
+            }
+            console.groupEnd();
+        };
+
         this.init();
     }
     
@@ -452,22 +471,24 @@ class CryptoPriceComparator {
     }
     
     async fetchUpbitPrices() {
-        const markets = this.coins.map(coin => coin.upbit).join(',');
-        const url = `https://api.upbit.com/v1/ticker?markets=${markets}`;
-        
+        // 업비트 공개 API는 인증 불필요. URL 길이 제한 방지를 위해 청크 처리
+        const markets = this.coins.map(coin => coin.upbit);
+        const chunkSize = 50; // 안전한 배치 크기
+        const chunks = [];
+        for (let i = 0; i < markets.length; i += chunkSize) {
+            chunks.push(markets.slice(i, i + chunkSize));
+        }
+
         try {
-            const headers = {
-                'Content-Type': 'application/json'
-            };
-            
-            // API 키가 있으면 Authorization 헤더 추가
-            if (this.apiKeys.upbit) {
-                headers['Authorization'] = `Bearer ${this.apiKeys.upbit}`;
+            const allResults = [];
+            for (const batch of chunks) {
+                const url = `https://api.upbit.com/v1/ticker?markets=${batch.join(',')}`;
+                const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!response.ok) throw new Error('업비트 API 응답 오류');
+                const json = await response.json();
+                allResults.push(...json);
             }
-            
-            const response = await fetch(url, { headers });
-            if (!response.ok) throw new Error('업비트 API 응답 오류');
-            return await response.json();
+            return allResults;
         } catch (error) {
             console.error('업비트 API 오류:', error);
             throw error;
@@ -494,7 +515,9 @@ class CryptoPriceComparator {
                 const data = await response.json();
                 return {
                     symbol: coin.bithumb,
-                    price: parseFloat(data.data.closing_price)
+                    price: (typeof data.data.closing_price === 'string'
+                        ? parseFloat(data.data.closing_price.replace(/,/g, ''))
+                        : parseFloat(data.data.closing_price))
                 };
             } catch (error) {
                 console.error(`빗썸 ${coin.symbol} API 오류:`, error);
@@ -526,6 +549,7 @@ class CryptoPriceComparator {
                         this.fetchUsdKrwRate()
                     ]);
                     
+                    this.logSanity && this.logSanity(upbitData, bithumbData);
                     this.priceData = this.processApiData(upbitData, bithumbData, binanceMap, usdKrw);
                 } catch (apiError) {
                     console.warn('API 요청 실패, 목업 데이터 사용:', apiError);
